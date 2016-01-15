@@ -24,6 +24,6 @@ if number_cars > 0
     x = randperm(n);
     for i = 1:number_cars
          plaza(1, unoccupied(x(i))) = 1;
-         v(1, unoccupied(i)) = vmax;
+         v(1, unoccupied(x(i))) = vmax;
     end
 end
