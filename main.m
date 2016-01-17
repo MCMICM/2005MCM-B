@@ -26,6 +26,7 @@
 %   h               =  handle of the graphics
 %   
 % zhou lvwen: zhou.lv.wen@gmail.com
+% July 30, 2009
 
 
 clear;clc
