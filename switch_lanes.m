@@ -2,10 +2,10 @@ function [plaza, v, time] =  switch_lanes(plaza, v, time)
 %
 % switch_lanes  Merge to avoid obstacles.
 %  
-% The vehicle will attempt to merge if its forward path is obstructed 
-% (dn = 0). The vehicle then randomly chooses an intended direction, right 
-% or left. If that intended direction is blocked, the car will move in the
-% other direction unless both directions are blocked (the car is surrounded). 
+% The vehicle will attempt to merge if its forward path is obstructed. The 
+% vehicle then randomly chooses an intended direction, right or left. If
+% that intended direction is blocked, the car will move in the other 
+% direction unless both directions are blocked (the car is surrounded). 
 % 
 % USAGE: [plaza, v, time] =  switch_lanes(plaza, v, time)
 %        plaza = plaza matrix
@@ -16,31 +16,26 @@ function [plaza, v, time] =  switch_lanes(plaza, v, time)
 %
 % zhou lvwen: zhou.lv.wen@gmail.com
 
-L = size(plaza, 1);
-kcars = find(plaza==1);
-kcars = kcars(randperm(length(kcars)));
-for k = kcars'
-    if (plaza(k+1)~=0 | plaza(k-1)==1) & rem(k,L)~=floor(L/2)
-        if rand < 0.5
-            if plaza(k+L) == 0 & plaza(k+L+1) == 0
-                plaza(k+L) = 1;      plaza(k) = 0;
-                v(k+L) = v(k);       v(k) = 0;
-                time(k+L) = time(k); time(k) = 0;
-            elseif plaza(k-L) == 0 & plaza(k-L+1) == 0
-                plaza(k-L) = 1;      plaza(k) = 0;
-                v(k-L) = v(k);       v(k) = 0;
-                time(k-L) = time(k); time(k) = 0;
-            end
-        else
-            if plaza(k-L) == 0 & plaza(k-L+1) == 0
-                plaza(k-L) = 1;      plaza(k) = 0;
-                v(k-L) = v(k);       v(k) = 0;
-                time(k-L) = time(k); time(k) = 0;
-            elseif plaza(k+L) == 0 & plaza(k+L+1) == 0
-                plaza(k+L) = 1;      plaza(k) = 0;
-                v(k+L) = v(k);       v(k) = 0;
-                time(k+L) = time(k); time(k) = 0;
-            end
-        end
+booth_row = ceil( size(plaza, 1)/2 );
+[row, col] = find(plaza==1);
+
+for k = randperm(length(row))
+    i = row(k); j = col(k);
+    if plaza(i+1,j)==0 | j==booth_row; continue; end
+    
+    dj = randsample([-1,1], 1);
+    
+    if plaza(i,j+dj)==0 & plaza(i+1,j+dj)==0
+        [plaza, v, time] = move(plaza, v, time, i, j, 0, +dj);
+    elseif plaza(i,j-dj)==0 & plaza(i+1,j-dj)==0
+        [plaza, v, time] = move(plaza, v, time, i, j, 0, -dj);
     end
 end
+
+% -------------------------------------------------------------------------
+
+function [plaza, v, time] = move(plaza, v, time, i, j, di, dj)
+% move vehicle from (i,j) to (i+di,j+dj)
+plaza(i+di,j+dj) =         1;          plaza(i,j) = 0;
+v(i+di,j+dj)     =    v(i,j);          v(i,j)     = 0;
+time(i+di,j+dj)  = time(i,j);          time(i,j)  = 0;
