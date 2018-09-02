@@ -4,11 +4,12 @@
 % vehicles passing through a toll plaza, , as governed by the parameters 
 % defined below
 %
-%   iterations   =  the maximal iterations of simulation
+%   tmax         =  the maximal iterations of simulation
 %   B            =  number booths
-%   L            =  number lanes in highway before and after plaza
+%   N            =  number lanes in highway before and after plaza
 %   arrate       =  the mean total number of cars that arrives 
-%   plazalen     =  length of the plaza
+%   L            =  length of the plaza
+%   W            =  B+2, width of the plaza
 %   srvrate      =  Service rate of booth
 %   plaza        =  plaza matrix
 %                   1 = car, 0 = empty, -1 = forbid, -3 = empty&booth
@@ -19,48 +20,46 @@
 %   dt           =  time step
 %   ndept        =  number of cars that departure the plaza in the step
 %   tdept        =  time cost of the departure cars
-%   influx       =  influx vector
-%   outflux      =  outflux vector
-%   timecost     =  time cost of all car
+%   flux         =  influx and outflux
+%   cost         =  time cost of all car
 %   h            =  handle of the graphics
 %   
 % zhou lvwen: zhou.lv.wen@gmail.com
 % July 30, 2009
-% January 24, 2017: revised
-
+% Septemer 1, 2018: revised
 
 clear;clc
-iterations = 5000; % the maximal iterations of simulation
-B = 12;     % number booths
-L = 6;      % number lanes in highway before and after plaza
-arrate = 4; % the mean total number of cars that arrives 
+tmax = 5000;     % the maximal iterations of simulation
+B = 16;          % number booths
+N = 8;           % number lanes in highway before and after plaza
+arrate = 4;      % the mean total number of cars that arrives 
+srvrate = 0.8;   % Service rate per booth
+dt = 0.2;        % time step
+vmax = 5;        % max speed
+L = 101;         % length of the plaza
 
-plazalen = 101; % length of the plaza
-[plaza, v, time] = create_plaza(B, L, plazalen);
+[plaza, v, time] = create_plaza(B, N, L);
 h = show_plaza(plaza, NaN, 0.01);
 
-srvrate = 0.8; % Service rate
-dt = 0.2; % time step
-vmax = 5; % max speed
-
-timecost = [];
-for i = 1:iterations
+cost = []; flux = zeros(tmax, 2);
+for i = 1:tmax
     % introduce new cars
-    [plaza, v, ncars] = new_cars(arrate, dt, plaza, v, vmax);
+    [plaza, v, nin] = new_cars(arrate, dt, plaza, v, vmax);
     
-    h = show_plaza(plaza, h, 0.1);
+    % plot plaza
+    h = show_plaza(plaza, h, 0);
 
+    % boundary condition
+    [plaza, v, time, nout, tout] = clear_boundary(plaza, v, time);
+    
     % update rules for lanes: lane changes & move forward
     [plaza, v, time] = switch_lanes(plaza, v, time); 
     [plaza, v, time] = move_forward(plaza, v, time, vmax, srvrate); 
-    [plaza, v, time, ndept, tdept] = clear_boundary(plaza, v, time);
     
     % flux calculations
-    influx(i) = ncars;
-    outflux(i) = ndept;
-    timecost = [timecost, tdept];
+    flux(i,:) = [nin, nout]; % [influx, outflux]
+    cost = [cost; tout];
 end
 
 h = show_plaza(plaza, h, 0.01);
-xlabel({strcat('B = ',num2str(B)), ...
-strcat('mean cost time = ', num2str(round(mean(timecost))))})
+xlabel(['mean cost time = ', num2str(round(mean(cost)))])
