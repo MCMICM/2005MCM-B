@@ -47,7 +47,7 @@ for i = 1:tmax
     [plaza, v, nin] = new_cars(arrate, dt, plaza, v, vmax);
     
     % plot plaza
-    h = show_plaza(plaza, h, 0);
+    h = show_plaza(plaza, h, 0.1);
 
     % boundary condition
     [plaza, v, time, nout, tout] = clear_boundary(plaza, v, time);
