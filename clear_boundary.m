@@ -1,4 +1,4 @@
-function [plaza, v, time, ndept, tdept] = clear_boundary(plaza, v, time)
+function [plaza, v, time, nout, tout] = clear_boundary(plaza, v, time)
 %
 % clear_boundary  remove the cars of the exit cell
 %
@@ -8,16 +8,18 @@ function [plaza, v, time, ndept, tdept] = clear_boundary(plaza, v, time)
 %        v = velocity matrix
 %        time = time matrix, to trace the time that the car cost to pass 
 %               the plaza.
-%        ndept = departures count
-%        tdept = departures time
+%        nout = departures count
+%        tout = departures time
 %
 % zhou lvwen: zhou.lv.wen@gmail.com
 
-dept = plaza(end, :)>0;
+[L,W] = size(plaza);
+ind = find(plaza==1);
+[row, col] = ind2sub([L,W], ind);
 
-ndept = sum(dept);
-tdept = time(end, dept);
+% Find out cars that their velocity >= their distance to the exit 
+k = find(v(ind)>=L-row);
+nout = length(k);
 
-plaza(end, dept) = 0;
-v(end, dept) = 0;
-time(end, dept) = 0;
+tout = time(ind(k));
+plaza(ind(k)) = 0;
