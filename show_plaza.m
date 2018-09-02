@@ -10,7 +10,7 @@ function h = show_plaza(plaza, h, n)
 %
 % zhou lvwen: zhou.lv.wen@gmail.com
 
-[L, W] = size(plaza); % get its dimensions
+if nargin==0; plaza = create_plaza(8, 4, 29); h = NaN; n = 0; end
 
 % mark & color:  car;       empty;      forbid;       booth;
 mark  = [          1;           0;          -1;          -3];
@@ -19,18 +19,15 @@ rgb = mat2rgb(plaza, mark, color);
 
 if ishandle(h)
     set(h,'CData',rgb)
-    pause(n)
 else
-    figure('position',[20,50,200,700])
-    h = imagesc(rgb);
-    hold on
+    figure('position',[20,50,200,700]);
+    h = imagesc(rgb); title(['B = ',num2str(size(plaza,2)-2)]);
+    hold on; axis image; set(gca, 'xtick', [], 'ytick', []);
     % draw the grid
-    plot([[0:W]',[0:W]']+0.5,[0,L]+0.5,'k')
-    plot([0,W]+0.5,[[0:L]',[0:L]']+0.5,'k')
-    axis image
-    set(gca, 'xtick', [], 'ytick', []);
-    pause(n)
+    [L, W] = size(plaza);
+    plot([0:W;0:W]+0.5, [0;L]+0.5,'k', [0;W]+0.5,[0:L;0:L]+0.5,'k')
 end
+pause(n)
 
 % -------------------------------------------------------------------------
 
@@ -42,16 +39,3 @@ for i = 1:length(mark)
     B(mat==mark(i)) = color(i,3);
 end
 rgb = cat(3, R, G, B);
-
-% -------------------------------------------------------------------------
-
-function hi = imagesc2(mat, mark, color)
-x = 0.5*[-1  1 1 -1];
-y = 0.5*[-1 -1 1  1];
-for i = 1:length(mark);
-   if all(color(i,:)==1); continue; end
-   [J,I] = find(mat==mark(i));
-   xi = bsxfun(@plus, I, x)';
-   yi = bsxfun(@plus, J, y)';
-   hi = fill(xi,yi, color(i,:));
-end
