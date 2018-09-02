@@ -23,7 +23,7 @@ function [plaza, v, time] = move_forward(plaza, v, time, vmax, srvrate)
 %                1 = car, 0 = empty, -1 = forbid, -3 = empty&booth
 %        v     = velocity matrix
 %        time  = time matrix, to trace the time that the car cost to pass 
-%               the plaza.
+%                the plaza.
 %        vmax  = max speed of car
 %        srvrate = Service rate
 %
@@ -43,13 +43,13 @@ k = find(rand(size(f))<probac);
 v(f(k)) = min( v(f(k))+1, vmax);
 
 % 2 No crashing
-gap = getgap(plaza);          % gap measurement for car in (i,j)
+gap = getgap(plaza, vmax);   % gap measurement for car in (i,j)
 k = find(v(f)>gap(f));
 v(f(k)) = gap(f(k));
 
 % 3 Random decel
 k = find( rand(size(f))<probrd );
-v(f(k)) = max(v(f(k)) - 1,0);
+v(f(k)) = max(v(f(k))-1, 0);
 
 % Service: enter and out the booths
 [v, plaza] = boothsrv(plaza, v, srvrate, dt);
@@ -66,30 +66,30 @@ function [v, plaza] = boothsrv(plaza, v, srvrate, dt)
 [L, W] = size(plaza);
 booth_row = ceil(L/2);
 for i = 2:W-1
-    if (plaza(booth_row,i) ~= 1)
+    if plaza(booth_row,i)~=1
         if (plaza(booth_row-1,i) == 1)
-            v(booth_row - 1 ,i) = 1;% enter into booth
+            v(booth_row-1,i) = 1;% enter into booth
         end
         plaza(booth_row,i) = -3;
     else % cars pass through service with exponential rate Service
-        if (plaza(booth_row+1,i) ~= 1)&(rand > exp(-srvrate*dt))
+        if plaza(booth_row+1,i)~=1 & rand>exp(-srvrate*dt)
             v(booth_row,i) = 1; % out booths
         else
             v(booth_row,i) = 0;
         end
-     end
+    end
 end
 
 % -------------------------------------------------------------------------
 
-function gap = getgap(plaza)
+function gap = getgap(plaza, vmax)
 % gap measurement for car in (i,j)
 
-[L,W] = size(plaza);
-gap = zeros(L,W);
-for k = find(plaza==1)'
-    [i,j] = ind2sub([L,W], k);
+gap = zeros(size(plaza));
+[row, col] = find(plaza==1);
+for k = 1:length(row)
+    i = row(k); j = col(k);
     d = plaza(i+1:end, j);
-    gap(k) = min( find([d~=0;1]) )-1;
+    gap(i,j) = min( find([d~=0;zeros(vmax,1);1]) ) - 1;
 end
 gap(end,:) = 0;
